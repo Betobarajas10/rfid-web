@@ -22,24 +22,20 @@ const db = getDatabase(app);
 const tabla = document.getElementById("tablaAccesos");
 const accesosRef = ref(db, "accesos");
 
-// Escuchar cambios en tiempo real
+// Escuchar cambios en tiempo real y mostrar historial
 onValue(accesosRef, (snapshot) => {
   tabla.innerHTML = "";
   const datos = snapshot.val();
   if (datos) {
-    // Firebase guarda los accesos bajo cada UID, 
-    // vamos a iterar para sacar cada acceso con su info
-    Object.entries(datos).forEach(([uid, registros]) => {
-      Object.entries(registros).forEach(([key, registro]) => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${registro.nombre || "Desconocido"}</td>
-          <td>${uid}</td>
-          <td>${registro.fecha || "-"}</td>
-          <td>${registro.hora || "-"}</td>
-        `;
-        tabla.appendChild(fila);
-      });
+    Object.entries(datos).forEach(([uid, registro]) => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${registro.nombre || "Desconocido"}</td>
+        <td>${registro.uid || uid}</td>
+        <td>${registro.FECHA || "-"}</td>
+        <td>${registro.hora || "-"}</td>
+      `;
+      tabla.appendChild(fila);
     });
   } else {
     tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
