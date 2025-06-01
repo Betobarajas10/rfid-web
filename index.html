@@ -2,90 +2,133 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registro de Accesos RFID</title>
+  <title>Control de Acceso</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f0f0f0;
+      margin: 30px;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      background: white;
+      max-width: 800px;
+      margin-bottom: 30px;
     }
     th, td {
-      border: 1px solid #aaa;
+      border: 1px solid #666;
       padding: 8px;
       text-align: center;
     }
     th {
-      background-color: #007BFF;
+      background-color: #0b5394;
       color: white;
     }
-    tbody tr:nth-child(even) {
-      background-color: #f2f2f2;
+    h2 {
+      margin-top: 40px;
+      color: #0b5394;
     }
   </style>
 </head>
 <body>
-  <h1>Registro de Accesos RFID</h1>
-  <table id="tablaAccesos">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>UID</th>
-        <th>Fecha</th>
-        <th>Hora</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td colspan="4">Cargando datos...</td></tr>
-    </tbody>
-  </table>
 
-  <script>
-    const dbUrl = "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com/accesos.json";
+<h1>Control de Acceso - Historial</h1>
 
-    async function cargarAccesos() {
-      try {
-        const resp = await fetch(dbUrl);
-        const data = await resp.json();
+<h2>Accesos Permitidos</h2>
+<table id="tablaAccesos">
+  <thead>
+    <tr><th>Nombre</th><th>UID</th><th>Fecha</th><th>Hora</th></tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="4">Cargando...</td></tr>
+  </tbody>
+</table>
 
-        const tbody = document.querySelector("#tablaAccesos tbody");
-        tbody.innerHTML = "";
+<h2>Accesos Denegados</h2>
+<table id="tablaDenegados">
+  <thead>
+    <tr><th>UID</th><th>Fecha</th><th>Hora</th></tr>
+  </thead>
+  <tbody>
+    <tr><td colspan="3">Cargando...</td></tr>
+  </tbody>
+</table>
 
-        if (!data) {
-          tbody.innerHTML = `<tr><td colspan="4">No hay registros disponibles</td></tr>`;
-          return;
-        }
+<script>
+const urlAccesos = "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com/accesos.json";
+const urlDenegados = "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com/accesos_denegados.json";
 
-        for (const key in data) {
-          const acceso = data[key];
-          const nombre = acceso.nombre || "Desconocido";
-          const uid = acceso.uid || "-";
-          const fecha = acceso.fecha || "-";
-          const hora = acceso.hora || "-";
+async function cargarAccesos() {
+  try {
+    const res = await fetch(urlAccesos);
+    const data = await res.json();
+    const tbody = document.querySelector("#tablaAccesos tbody");
+    tbody.innerHTML = "";
 
-          const fila = `
-            <tr>
-              <td>${nombre}</td>
-              <td>${uid}</td>
-              <td>${fecha}</td>
-              <td>${hora}</td>
-            </tr>`;
-          tbody.innerHTML += fila;
-        }
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
-        const tbody = document.querySelector("#tablaAccesos tbody");
-        tbody.innerHTML = `<tr><td colspan="4">Error al cargar datos</td></tr>`;
-      }
+    if (!data) {
+      tbody.innerHTML = `<tr><td colspan="4">No hay registros disponibles</td></tr>`;
+      return;
     }
 
-    cargarAccesos();
-    setInterval(cargarAccesos, 5000); // Actualiza cada 5 segundos
-  </script>
+    for (const key in data) {
+      const acceso = data[key];
+      const nombre = acceso.nombre || "Desconocido";
+      const uid = acceso.uid || "-";
+      const fecha = acceso.FECHA || acceso.fecha || "-";
+      const hora = acceso.hora || "-";
+
+      tbody.innerHTML += `<tr>
+        <td>${nombre}</td>
+        <td>${uid}</td>
+        <td>${fecha}</td>
+        <td>${hora}</td>
+      </tr>`;
+    }
+  } catch (e) {
+    console.error("Error cargando accesos:", e);
+    document.querySelector("#tablaAccesos tbody").innerHTML = `<tr><td colspan="4">Error al cargar datos</td></tr>`;
+  }
+}
+
+async function cargarDenegados() {
+  try {
+    const res = await fetch(urlDenegados);
+    const data = await res.json();
+    const tbody = document.querySelector("#tablaDenegados tbody");
+    tbody.innerHTML = "";
+
+    if (!data) {
+      tbody.innerHTML = `<tr><td colspan="3">No hay registros disponibles</td></tr>`;
+      return;
+    }
+
+    // Ordenar claves descendente para mostrar más recientes arriba
+    const clavesOrdenadas = Object.keys(data).sort().reverse();
+
+    for (const key of clavesOrdenadas) {
+      const acceso = data[key];
+      const uid = acceso.UID || acceso.uid || "-";
+      const fecha = acceso.FECHA || acceso.fecha || "-";
+      const hora = acceso.hora || "-";
+
+      tbody.innerHTML += `<tr>
+        <td>${uid}</td>
+        <td>${fecha}</td>
+        <td>${hora}</td>
+      </tr>`;
+    }
+  } catch (e) {
+    console.error("Error cargando denegados:", e);
+    document.querySelector("#tablaDenegados tbody").innerHTML = `<tr><td colspan="3">Error al cargar datos</td></tr>`;
+  }
+}
+
+cargarAccesos();
+cargarDenegados();
+setInterval(() => {
+  cargarAccesos();
+  cargarDenegados();
+}, 5000);
+
+</script>
 </body>
 </html>
