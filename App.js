@@ -1,4 +1,4 @@
-// Importar los módulos Firebase desde CDN
+// Importa módulos Firebase desde CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
@@ -18,36 +18,32 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Referencia a la tabla donde se mostrará el historial
+// Referencia tabla para historial
 const tabla = document.getElementById("tablaAccesos");
 const accesosRef = ref(db, "accesos");
 
 // Escuchar cambios en tiempo real y mostrar historial
 onValue(accesosRef, (snapshot) => {
-  tabla.innerHTML = "";
   const datos = snapshot.val();
-  console.log("Datos accesos:", datos);  // <--- Aquí imprimimos para ver
-
-  if (datos) {
-    Object.entries(datos).forEach(([uid, registro]) => {
-      console.log("Registro UID:", uid, registro);  // <--- Imprime cada registro
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${registro.nombre || "Desconocido"}</td>
-        <td>${registro.uid || uid}</td>
-        <td>${registro.FECHA || "-"}</td>
-        <td>${registro.hora || "-"}</td>
-      `;
-      tabla.appendChild(fila);
-    });
-  } else {
+  tabla.innerHTML = "";
+  if (!datos) {
     tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
+    return;
   }
+  Object.entries(datos).forEach(([key, registro]) => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${registro.nombre || "Desconocido"}</td>
+      <td>${registro.uid || key}</td>
+      <td>${registro.FECHA || "-"}</td>
+      <td>${registro.hora || "-"}</td>
+    `;
+    tabla.appendChild(fila);
+  });
 });
 
-
-// Función para actualizar permiso de usuario
-window.actualizarPermiso = function () {
+// Actualizar permiso de usuario (habilitar o bloquear)
+document.getElementById("btnActualizar").onclick = () => {
   const uid = document.getElementById("uidInput").value.trim();
   const permitido = document.getElementById("permisoInput").value === "true";
 
@@ -61,8 +57,8 @@ window.actualizarPermiso = function () {
     .catch((error) => alert("Error al actualizar permiso: " + error));
 };
 
-// Función para abrir puerta remotamente
-window.abrirPuerta = function () {
+// Abrir puerta remotamente
+document.getElementById("btnAbrir").onclick = () => {
   set(ref(db, "control_remoto/abrir_puerta"), true)
     .then(() => alert("Puerta activada remotamente"))
     .catch((error) => alert("Error al abrir puerta: " + error));
