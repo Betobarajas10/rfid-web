@@ -18,11 +18,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Referencia al tbody para historial
+// Referencias para tablas
 const tabla = document.getElementById("tablaAccesos");
-const accesosRef = ref(db, "accesos");
+const tablaDenegados = document.getElementById("tablaDenegados");
 
-// Escuchar cambios en tiempo real y mostrar historial
+const accesosRef = ref(db, "accesos");
+const denegadosRef = ref(db, "accesos_denegados");
+
+// Escuchar cambios en tiempo real y mostrar historial de accesos permitidos
 onValue(accesosRef, (snapshot) => {
   const datos = snapshot.val();
   tabla.innerHTML = ""; // Limpiar filas previas
@@ -33,7 +36,6 @@ onValue(accesosRef, (snapshot) => {
   }
 
   Object.entries(datos).forEach(([key, registro]) => {
-    // Validar que registro tenga nombre y uid
     const nombre = registro.nombre || "Desconocido";
     const uid = registro.uid || key;
     const fecha = registro.FECHA || "-";
@@ -47,6 +49,31 @@ onValue(accesosRef, (snapshot) => {
       <td>${hora}</td>
     `;
     tabla.appendChild(fila);
+  });
+});
+
+// Escuchar cambios en tiempo real y mostrar intentos de acceso denegados
+onValue(denegadosRef, (snapshot) => {
+  const datos = snapshot.val();
+  tablaDenegados.innerHTML = ""; // Limpiar filas previas
+
+  if (!datos) {
+    tablaDenegados.innerHTML = "<tr><td colspan='3'>No hay registros aún</td></tr>";
+    return;
+  }
+
+  Object.entries(datos).forEach(([key, registro]) => {
+    const uid = registro.uid || key;
+    const fecha = registro.FECHA || "-";
+    const hora = registro.hora || "-";
+
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${uid}</td>
+      <td>${fecha}</td>
+      <td>${hora}</td>
+    `;
+    tablaDenegados.appendChild(fila);
   });
 });
 
