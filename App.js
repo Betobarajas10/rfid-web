@@ -1,4 +1,3 @@
-// Importa módulos Firebase desde CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
@@ -18,53 +17,51 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Referencias para tablas
+// Referencias a las tablas HTML
 const tabla = document.getElementById("tablaAccesos");
 const tablaDenegados = document.getElementById("tablaDenegados");
 
-const accesosRef = ref(db, "accesos");
-const denegadosRef = ref(db, "accesos_denegados");
-
-// Escuchar cambios en tiempo real y mostrar historial de accesos permitidos
-onValue(accesosRef, (snapshot) => {
+// Escuchar accesos permitidos
+onValue(ref(db, "accesos"), (snapshot) => {
   const datos = snapshot.val();
-  tabla.innerHTML = ""; // Limpiar filas previas
+  tabla.innerHTML = "";
 
   if (!datos) {
     tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
     return;
   }
 
-  Object.entries(datos).forEach(([key, registro]) => {
-    const nombre = registro.nombre || "Desconocido";
-    const uid = registro.uid || key;
-    const fecha = registro.FECHA || "-";
-    const hora = registro.hora || "-";
+  Object.entries(datos).forEach(([uid, entradas]) => {
+    Object.entries(entradas).forEach(([timestamp, registro]) => {
+      const nombre = registro.nombre || "Desconocido";
+      const fecha = registro.FECHA || "-";
+      const hora = registro.hora || "-";
 
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${nombre}</td>
-      <td>${uid}</td>
-      <td>${fecha}</td>
-      <td>${hora}</td>
-    `;
-    tabla.appendChild(fila);
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${nombre}</td>
+        <td>${uid}</td>
+        <td>${fecha}</td>
+        <td>${hora}</td>
+      `;
+      tabla.appendChild(fila);
+    });
   });
 });
 
-// Escuchar cambios en tiempo real y mostrar intentos de acceso denegados
-onValue(denegadosRef, (snapshot) => {
+// Escuchar accesos denegados
+onValue(ref(db, "denegados"), (snapshot) => {
   const datos = snapshot.val();
-  tablaDenegados.innerHTML = ""; // Limpiar filas previas
+  tablaDenegados.innerHTML = "";
 
   if (!datos) {
     tablaDenegados.innerHTML = "<tr><td colspan='3'>No hay registros aún</td></tr>";
     return;
   }
 
-  Object.entries(datos).forEach(([key, registro]) => {
-    const uid = registro.uid || key;
-    const fecha = registro.FECHA || "-";
+  Object.entries(datos).forEach(([timestamp, registro]) => {
+    const uid = registro.UID || "Desconocido";
+    const fecha = registro.fecha || "-";
     const hora = registro.hora || "-";
 
     const fila = document.createElement("tr");
@@ -77,9 +74,9 @@ onValue(denegadosRef, (snapshot) => {
   });
 });
 
-// Función para actualizar permiso de usuario (habilitar o bloquear)
+// Botón para actualizar permisos
 document.getElementById("btnActualizar").onclick = () => {
-  const uid = document.getElementById("uidInput").value.trim();
+  const uid = document.getElementById("uidInput").value.trim().toUpperCase();
   const permitido = document.getElementById("permisoInput").value === "true";
 
   if (!uid) {
@@ -92,7 +89,7 @@ document.getElementById("btnActualizar").onclick = () => {
     .catch((error) => alert("Error al actualizar permiso: " + error));
 };
 
-// Función para abrir puerta remotamente
+// Botón para abrir puerta remotamente
 document.getElementById("btnAbrir").onclick = () => {
   set(ref(db, "control_remoto/abrir_puerta"), true)
     .then(() => alert("Puerta activada remotamente"))
