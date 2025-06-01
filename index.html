@@ -3,11 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Control de Acceso</title>
+  <title>Control de Acceso RFID</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Estilos básicos para la tabla y botones */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .form-group {
+      margin-bottom: 15px;
+      max-width: 400px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select, button {
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .controls {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+  </style>
 </head>
 <body>
-  <h1>🚪 Historial de Accesos</h1>
+  <h1>Historial de Accesos RFID</h1>
+
   <table>
     <thead>
       <tr>
@@ -22,21 +83,27 @@
     </tbody>
   </table>
 
-  <h2>🔒 Bloquear/Habilitar Acceso</h2>
-  <input type="text" id="uidInput" placeholder="UID de tarjeta" />
-  <select id="permisoInput">
-    <option value="true">Habilitar</option>
-    <option value="false">Bloquear</option>
-  </select>
-  <button onclick="actualizarPermiso()">Actualizar</button>
+  <div class="controls">
+    <h2>Actualizar Permiso de Usuario</h2>
+    <div class="form-group">
+      <label for="uidInput">UID:</label>
+      <input type="text" id="uidInput" placeholder="Ejemplo: 33AC361C" />
+    </div>
+    <div class="form-group">
+      <label for="permisoInput">Permiso:</label>
+      <select id="permisoInput">
+        <option value="true">Permitido</option>
+        <option value="false">Denegado</option>
+      </select>
+    </div>
+    <button id="btnActualizar">Actualizar Permiso</button>
+  </div>
 
-  <h2>🌐 Control Remoto</h2>
-  <button onclick="abrirPuerta()">Abrir puerta ahora</button>
+  <div class="controls" style="margin-top: 30px;">
+    <h2>Abrir Puerta Remotamente</h2>
+    <button id="btnAbrir">Abrir Puerta</button>
+  </div>
 
-  <!-- Carga App.js como módulo -->
-  <link rel="stylesheet" href="style.css" />
-...
-<script type="module" src="App.js"></script>
-
+  <script type="module" src="app.js"></script>
 </body>
 </html>
