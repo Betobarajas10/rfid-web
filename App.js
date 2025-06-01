@@ -1,55 +1,67 @@
-// Configura tu Firebase aquí (usa tu propia configuración)
+// Importar módulos Firebase desde CDN
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+// Configuración Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
   authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
   databaseURL: "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com",
   projectId: "controlaccesoesp32-820ba",
   storageBucket: "controlaccesoesp32-820ba.appspot.com",
-  messagingSenderId: "TU_MESSAGING_SENDER_ID",
-  appId: "TU_APP_ID"
+  messagingSenderId: "53262617630",
+  appId: "1:53262617630:web:5cee0e97225dd940b5320f",
+  measurementId: "G-E86XLYSPCP"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-const tablaCuerpo = document.querySelector("#accesosTable tbody");
+const tabla = document.getElementById("tablaAccesos");
+const accesosRef = ref(db, "accesos");
 
-// Función para leer datos de 'accesos' y mostrarlos en la tabla
-function cargarAccesos() {
-  const accesosRef = db.ref("accesos");
-
-  accesosRef.on("value", (snapshot) => {
-    tablaCuerpo.innerHTML = ""; // Limpiar tabla antes de actualizar
-
-    const accesos = snapshot.val();
-    if (!accesos) {
-      tablaCuerpo.innerHTML = "<tr><td colspan='4'>No hay registros</td></tr>";
-      return;
-    }
-
-    // Recorrer cada UID
-    Object.keys(accesos).forEach(uid => {
-      const registrosUID = accesos[uid];
-      // Recorrer registros individuales (timestamp u otro ID)
-      Object.keys(registrosUID).forEach(regId => {
-        const reg = registrosUID[regId];
+// Escuchar cambios en tiempo real
+onValue(accesosRef, (snapshot) => {
+  tabla.innerHTML = "";
+  const datos = snapshot.val();
+  if (datos) {
+    // Iterar cada UID y sus registros
+    Object.entries(datos).forEach(([uid, registros]) => {
+      Object.entries(registros).forEach(([key, registro]) => {
         const fila = document.createElement("tr");
-
-        // Mostrar nombre (permitido o desconocido)
-        const nombre = reg.nombre || "Desconocido";
-        const fecha = reg.fecha || "-";
-        const hora = reg.hora || "-";
-
         fila.innerHTML = `
-          <td>${nombre}</td>
-          <td>${reg.uid}</td>
-          <td>${fecha}</td>
-          <td>${hora}</td>
+          <td>${registro.nombre || "Desconocido"}</td>
+          <td>${uid}</td>
+          <td>${registro.fecha || "-"}</td>
+          <td>${registro.hora || "-"}</td>
         `;
-        tablaCuerpo.appendChild(fila);
+        tabla.appendChild(fila);
       });
     });
-  });
-}
+  } else {
+    tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
+  }
+});
 
-window.onload = cargarAccesos;
+// Actualizar permiso de usuario
+window.actualizarPermiso = function () {
+  const uid = document.getElementById("uidInput").value.trim();
+  const permitido = document.getElementById("permisoInput").value === "true";
+
+  if (!uid) {
+    alert("Por favor ingresa un UID válido.");
+    return;
+  }
+
+  update(ref(db, `usuarios/${uid}`), { permitido })
+    .then(() => alert("Permiso actualizado correctamente"))
+    .catch((error) => alert("Error al actualizar permiso: " + error));
+};
+
+// Abrir puerta remotamente
+window.abrirPuerta = function () {
+  set(ref(db, "control_remoto/abrir_puerta"), true)
+    .then(() => alert("Puerta activada remotamente"))
+    .catch((error) => alert("Error al abrir puerta: " + error));
+};
