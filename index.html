@@ -2,134 +2,114 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Control de Acceso - Tiempo Real</title>
+  <title>Control de Acceso - Historial</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 30px;
+      padding: 20px;
     }
-    h1, h2 {
-      color: #0b5394;
+    h2 {
+      margin-top: 40px;
     }
     table {
-      border-collapse: collapse;
       width: 100%;
-      max-width: 900px;
-      margin-bottom: 30px;
+      border-collapse: collapse;
+      margin-top: 10px;
     }
     th, td {
-      border: 1px solid #666;
-      padding: 8px;
+      padding: 10px;
+      border: 1px solid #ccc;
       text-align: center;
     }
     th {
-      background-color: #0b5394;
-      color: white;
+      background-color: #f2f2f2;
+    }
+    .permitido {
+      color: green;
+    }
+    .denegado {
+      color: red;
     }
   </style>
 </head>
 <body>
+  <h1>Control de Acceso - Historial</h1>
 
-<h1>Control de Acceso - Historial en Tiempo Real</h1>
+  <h2 class="permitido">Accesos Permitidos</h2>
+  <table id="tablaPermitidos">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>UID</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<h2>Accesos Permitidos</h2>
-<table id="tablaAccesos">
-  <thead>
-    <tr><th>Nombre</th><th>UID</th><th>Fecha</th><th>Hora</th></tr>
-  </thead>
-  <tbody>
-    <tr><td colspan="4">Cargando...</td></tr>
-  </tbody>
-</table>
+  <h2 class="denegado">Accesos Denegados</h2>
+  <table id="tablaDenegados">
+    <thead>
+      <tr>
+        <th>UID</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-<h2>Accesos Denegados</h2>
-<table id="tablaDenegados">
-  <thead>
-    <tr><th>UID</th><th>Fecha</th><th>Hora</th></tr>
-  </thead>
-  <tbody>
-    <tr><td colspan="3">Cargando...</td></tr>
-  </tbody>
-</table>
+  <script>
+    // 🔧 Reemplaza esto con tus credenciales de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
+      authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
+      databaseURL: "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com",
+      projectId: "controlaccesoesp32-820ba",
+      storageBucket: "controlaccesoesp32-820ba.appspot.com",
+      messagingSenderId: "1094722451466",
+      appId: "1:1094722451466:web:0b6a358a6f0b59b3e5c11d"
+    };
 
-<script>
-  // Configuración de tu Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
-    authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
-    databaseURL: "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com",
-    projectId: "controlaccesoesp32-820ba",
-    storageBucket: "controlaccesoesp32-820ba.appspot.com",
-    messagingSenderId: "519519535122",
-    appId: "1:519519535122:web:xxxxxxxxxxxxxx"  // este campo no es obligatorio
-  };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+    const tablaPermitidos = document.querySelector("#tablaPermitidos tbody");
+    const tablaDenegados = document.querySelector("#tablaDenegados tbody");
 
-  function cargarAccesos() {
-    const ref = db.ref("accesos");
-    ref.on("value", snapshot => {
-      const data = snapshot.val();
-      const tbody = document.querySelector("#tablaAccesos tbody");
-      tbody.innerHTML = "";
-
-      if (!data) {
-        tbody.innerHTML = `<tr><td colspan="4">Sin registros</td></tr>`;
-        return;
-      }
-
-      for (const key in data) {
-        const acc = data[key];
-        const nombre = acc.nombre || "Desconocido";
-        const uid = acc.uid || "-";
-        const fecha = acc.FECHA || acc.fecha || "-";
-        const hora = acc.hora || "-";
-
-        tbody.innerHTML += `<tr>
-          <td>${nombre}</td>
-          <td>${uid}</td>
-          <td>${fecha}</td>
-          <td>${hora}</td>
-        </tr>`;
-      }
+    // Accesos Permitidos
+    db.ref("accesos").on("value", snapshot => {
+      tablaPermitidos.innerHTML = ""; // Limpiar tabla
+      snapshot.forEach(child => {
+        const data = child.val();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data.nombre || "Desconocido"}</td>
+          <td>${data.uid}</td>
+          <td>${data.FECHA}</td>
+          <td>${data.hora}</td>
+        `;
+        tablaPermitidos.appendChild(row);
+      });
     });
-  }
 
-  function cargarDenegados() {
-    const ref = db.ref("accesos_denegados");
-    ref.on("value", snapshot => {
-      const data = snapshot.val();
-      const tbody = document.querySelector("#tablaDenegados tbody");
-      tbody.innerHTML = "";
-
-      if (!data) {
-        tbody.innerHTML = `<tr><td colspan="3">Sin registros</td></tr>`;
-        return;
-      }
-
-      // Ordenar por clave (fechas) descendente
-      const claves = Object.keys(data).sort().reverse();
-      for (const key of claves) {
-        const acc = data[key];
-        const uid = acc.UID || acc.uid || "-";
-        const fecha = acc.FECHA || acc.fecha || "-";
-        const hora = acc.hora || "-";
-
-        tbody.innerHTML += `<tr>
-          <td>${uid}</td>
-          <td>${fecha}</td>
-          <td>${hora}</td>
-        </tr>`;
-      }
+    // Accesos Denegados
+    db.ref("accesos_denegados").on("value", snapshot => {
+      tablaDenegados.innerHTML = ""; // Limpiar tabla
+      snapshot.forEach(child => {
+        const data = child.val();
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${data.UID}</td>
+          <td>${data.FECHA}</td>
+          <td>${data.hora}</td>
+        `;
+        tablaDenegados.appendChild(row);
+      });
     });
-  }
-
-  cargarAccesos();
-  cargarDenegados();
-</script>
-
+  </script>
 </body>
 </html>
