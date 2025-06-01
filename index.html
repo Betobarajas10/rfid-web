@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Control de Acceso</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Historial de Accesos</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h1>🚪 Historial de Accesos</h1>
-
-  <table>
+  <h1>Historial de Accesos</h1>
+  <table id="accesosTable">
     <thead>
       <tr>
         <th>Nombre</th>
@@ -18,22 +20,9 @@
         <th>Hora</th>
       </tr>
     </thead>
-    <tbody id="tablaAccesos">
-      <tr><td colspan="4">Cargando registros...</td></tr>
-    </tbody>
+    <tbody></tbody>
   </table>
 
-  <h2>🔒 Bloquear/Habilitar Acceso</h2>
-  <input type="text" id="uidInput" placeholder="UID de tarjeta" />
-  <select id="permisoInput">
-    <option value="true">Habilitar</option>
-    <option value="false">Bloquear</option>
-  </select>
-  <button id="btnActualizar">Actualizar</button>
-
-  <h2>🌐 Control Remoto</h2>
-  <button id="btnAbrir">Abrir puerta ahora</button>
-
-  <script type="module" src="App.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,22 +1,35 @@
 body {
-  font-family: sans-serif;
-  padding: 20px;
+  font-family: Arial, sans-serif;
   background: #f7f7f7;
-}
-h1, h2 {
+  padding: 20px;
   color: #333;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
+
+h1 {
+  text-align: center;
   margin-bottom: 20px;
 }
-table th, table td {
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+th, td {
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 10px;
   text-align: center;
 }
-input, select, button {
-  margin: 5px;
-  padding: 10px;
+
+thead {
+  background-color: #4CAF50;
+  color: white;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
