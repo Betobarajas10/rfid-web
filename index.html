@@ -1,115 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Control de Acceso - Historial</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    h2 {
-      margin-top: 40px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .permitido {
-      color: green;
-    }
-    .denegado {
-      color: red;
-    }
-  </style>
 </head>
 <body>
   <h1>Control de Acceso - Historial</h1>
 
-  <h2 class="permitido">Accesos Permitidos</h2>
-  <table id="tablaPermitidos">
+  <h2>Accesos Permitidos</h2>
+  <table border="1">
     <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>UID</th>
-        <th>Fecha</th>
-        <th>Hora</th>
-      </tr>
+      <tr><th>Nombre</th><th>UID</th><th>Fecha</th><th>Hora</th></tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="tablaPermitidos"></tbody>
   </table>
 
-  <h2 class="denegado">Accesos Denegados</h2>
-  <table id="tablaDenegados">
+  <h2>Accesos Denegados</h2>
+  <table border="1">
     <thead>
-      <tr>
-        <th>UID</th>
-        <th>Fecha</th>
-        <th>Hora</th>
-      </tr>
+      <tr><th>UID</th><th>Fecha</th><th>Hora</th></tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="tablaDenegados"></tbody>
   </table>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // 🔧 Reemplaza esto con tus credenciales de Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
       authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
       databaseURL: "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com",
       projectId: "controlaccesoesp32-820ba",
       storageBucket: "controlaccesoesp32-820ba.appspot.com",
-      messagingSenderId: "1094722451466",
-      appId: "1:1094722451466:web:0b6a358a6f0b59b3e5c11d"
+      messagingSenderId: "757059664709",
+      appId: "1:757059664709:web:ea7c7f3f9e0f871162a273"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const tablaPermitidos = document.querySelector("#tablaPermitidos tbody");
-    const tablaDenegados = document.querySelector("#tablaDenegados tbody");
+    function mostrarAccesos() {
+      const tablaPermitidos = document.getElementById("tablaPermitidos");
+      tablaPermitidos.innerHTML = ""; // Limpiar
 
-    // Accesos Permitidos
-    db.ref("accesos").on("value", snapshot => {
-      tablaPermitidos.innerHTML = ""; // Limpiar tabla
-      snapshot.forEach(child => {
-        const data = child.val();
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${data.nombre || "Desconocido"}</td>
-          <td>${data.uid}</td>
-          <td>${data.FECHA}</td>
-          <td>${data.hora}</td>
-        `;
-        tablaPermitidos.appendChild(row);
+      db.ref("accesos").on("value", snapshot => {
+        tablaPermitidos.innerHTML = "";
+        snapshot.forEach(child => {
+          const datos = child.val();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${datos.nombre || "-"}</td>
+            <td>${datos.uid || "-"}</td>
+            <td>${datos.FECHA || "-"}</td>
+            <td>${datos.hora || "-"}</td>
+          `;
+          tablaPermitidos.appendChild(tr);
+        });
       });
-    });
+    }
 
-    // Accesos Denegados
-    db.ref("accesos_denegados").on("value", snapshot => {
-      tablaDenegados.innerHTML = ""; // Limpiar tabla
-      snapshot.forEach(child => {
-        const data = child.val();
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${data.UID}</td>
-          <td>${data.FECHA}</td>
-          <td>${data.hora}</td>
-        `;
-        tablaDenegados.appendChild(row);
+    function mostrarDenegados() {
+      const tablaDenegados = document.getElementById("tablaDenegados");
+      tablaDenegados.innerHTML = ""; // Limpiar
+
+      db.ref("accesos_denegados").on("value", snapshot => {
+        tablaDenegados.innerHTML = "";
+        snapshot.forEach(child => {
+          const datos = child.val();
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${datos.UID || "-"}</td>
+            <td>${datos.FECHA || "-"}</td>
+            <td>${datos.hora || "-"}</td>
+          `;
+          tablaDenegados.appendChild(tr);
+        });
       });
-    });
+    }
+
+    // Ejecutar funciones al cargar
+    mostrarAccesos();
+    mostrarDenegados();
   </script>
 </body>
 </html>
