@@ -26,8 +26,11 @@ const accesosRef = ref(db, "accesos");
 onValue(accesosRef, (snapshot) => {
   tabla.innerHTML = "";
   const datos = snapshot.val();
+  console.log("Datos accesos:", datos);  // <--- Aquí imprimimos para ver
+
   if (datos) {
     Object.entries(datos).forEach(([uid, registro]) => {
+      console.log("Registro UID:", uid, registro);  // <--- Imprime cada registro
       const fila = document.createElement("tr");
       fila.innerHTML = `
         <td>${registro.nombre || "Desconocido"}</td>
@@ -41,6 +44,7 @@ onValue(accesosRef, (snapshot) => {
     tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
   }
 });
+
 
 // Función para actualizar permiso de usuario
 window.actualizarPermiso = function () {
