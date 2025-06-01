@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Control de Acceso</title>
+  <meta charset="UTF-8">
+  <title>Control de Acceso - Tiempo Real</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 30px;
     }
+    h1, h2 {
+      color: #0b5394;
+    }
     table {
       border-collapse: collapse;
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       margin-bottom: 30px;
     }
     th, td {
@@ -23,15 +28,11 @@
       background-color: #0b5394;
       color: white;
     }
-    h2 {
-      margin-top: 40px;
-      color: #0b5394;
-    }
   </style>
 </head>
 <body>
 
-<h1>Control de Acceso - Historial</h1>
+<h1>Control de Acceso - Historial en Tiempo Real</h1>
 
 <h2>Accesos Permitidos</h2>
 <table id="tablaAccesos">
@@ -54,80 +55,81 @@
 </table>
 
 <script>
-const urlAccesos = "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com/accesos.json";
-const urlDenegados = "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com/accesos_denegados.json";
+  // Configuración de tu Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
+    authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
+    databaseURL: "https://controlaccesoesp32-820ba-default-rtdb.firebaseio.com",
+    projectId: "controlaccesoesp32-820ba",
+    storageBucket: "controlaccesoesp32-820ba.appspot.com",
+    messagingSenderId: "519519535122",
+    appId: "1:519519535122:web:xxxxxxxxxxxxxx"  // este campo no es obligatorio
+  };
 
-async function cargarAccesos() {
-  try {
-    const res = await fetch(urlAccesos);
-    const data = await res.json();
-    const tbody = document.querySelector("#tablaAccesos tbody");
-    tbody.innerHTML = "";
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    if (!data) {
-      tbody.innerHTML = `<tr><td colspan="4">No hay registros disponibles</td></tr>`;
-      return;
-    }
+  function cargarAccesos() {
+    const ref = db.ref("accesos");
+    ref.on("value", snapshot => {
+      const data = snapshot.val();
+      const tbody = document.querySelector("#tablaAccesos tbody");
+      tbody.innerHTML = "";
 
-    for (const key in data) {
-      const acceso = data[key];
-      const nombre = acceso.nombre || "Desconocido";
-      const uid = acceso.uid || "-";
-      const fecha = acceso.FECHA || acceso.fecha || "-";
-      const hora = acceso.hora || "-";
+      if (!data) {
+        tbody.innerHTML = `<tr><td colspan="4">Sin registros</td></tr>`;
+        return;
+      }
 
-      tbody.innerHTML += `<tr>
-        <td>${nombre}</td>
-        <td>${uid}</td>
-        <td>${fecha}</td>
-        <td>${hora}</td>
-      </tr>`;
-    }
-  } catch (e) {
-    console.error("Error cargando accesos:", e);
-    document.querySelector("#tablaAccesos tbody").innerHTML = `<tr><td colspan="4">Error al cargar datos</td></tr>`;
+      for (const key in data) {
+        const acc = data[key];
+        const nombre = acc.nombre || "Desconocido";
+        const uid = acc.uid || "-";
+        const fecha = acc.FECHA || acc.fecha || "-";
+        const hora = acc.hora || "-";
+
+        tbody.innerHTML += `<tr>
+          <td>${nombre}</td>
+          <td>${uid}</td>
+          <td>${fecha}</td>
+          <td>${hora}</td>
+        </tr>`;
+      }
+    });
   }
-}
 
-async function cargarDenegados() {
-  try {
-    const res = await fetch(urlDenegados);
-    const data = await res.json();
-    const tbody = document.querySelector("#tablaDenegados tbody");
-    tbody.innerHTML = "";
+  function cargarDenegados() {
+    const ref = db.ref("accesos_denegados");
+    ref.on("value", snapshot => {
+      const data = snapshot.val();
+      const tbody = document.querySelector("#tablaDenegados tbody");
+      tbody.innerHTML = "";
 
-    if (!data) {
-      tbody.innerHTML = `<tr><td colspan="3">No hay registros disponibles</td></tr>`;
-      return;
-    }
+      if (!data) {
+        tbody.innerHTML = `<tr><td colspan="3">Sin registros</td></tr>`;
+        return;
+      }
 
-    const clavesOrdenadas = Object.keys(data).sort().reverse();
+      // Ordenar por clave (fechas) descendente
+      const claves = Object.keys(data).sort().reverse();
+      for (const key of claves) {
+        const acc = data[key];
+        const uid = acc.UID || acc.uid || "-";
+        const fecha = acc.FECHA || acc.fecha || "-";
+        const hora = acc.hora || "-";
 
-    for (const key of clavesOrdenadas) {
-      const acceso = data[key];
-      const uid = acceso.UID || acceso.uid || "-";
-      const fecha = acceso.FECHA || acceso.fecha || "-";  // <-- CORREGIDO AQUÍ
-      const hora = acceso.hora || "-";
-
-      tbody.innerHTML += `<tr>
-        <td>${uid}</td>
-        <td>${fecha}</td>
-        <td>${hora}</td>
-      </tr>`;
-    }
-  } catch (e) {
-    console.error("Error cargando denegados:", e);
-    document.querySelector("#tablaDenegados tbody").innerHTML = `<tr><td colspan="3">Error al cargar datos</td></tr>`;
+        tbody.innerHTML += `<tr>
+          <td>${uid}</td>
+          <td>${fecha}</td>
+          <td>${hora}</td>
+        </tr>`;
+      }
+    });
   }
-}
 
-cargarAccesos();
-cargarDenegados();
-setInterval(() => {
   cargarAccesos();
   cargarDenegados();
-}, 5000);
-
 </script>
+
 </body>
 </html>
