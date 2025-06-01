@@ -1,8 +1,8 @@
-// Importar módulos Firebase desde CDN
+// Importa módulos Firebase desde CDN
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
 import { getDatabase, ref, onValue, update, set } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
-// Configuración Firebase
+// Configuración Firebase (reemplaza con la tuya)
 const firebaseConfig = {
   apiKey: "AIzaSyC6T4wb8ZhNT55Tss8bOUGUNSRMlhz-brY",
   authDomain: "controlaccesoesp32-820ba.firebaseapp.com",
@@ -18,34 +18,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Referencia al tbody para historial (asegúrate que en el HTML tenga id="tablaAccesos")
 const tabla = document.getElementById("tablaAccesos");
 const accesosRef = ref(db, "accesos");
 
-// Escuchar cambios en tiempo real
+// Escuchar cambios en tiempo real y mostrar historial
 onValue(accesosRef, (snapshot) => {
-  tabla.innerHTML = "";
   const datos = snapshot.val();
-  if (datos) {
-    // Iterar cada UID y sus registros
-    Object.entries(datos).forEach(([uid, registros]) => {
-      Object.entries(registros).forEach(([key, registro]) => {
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${registro.nombre || "Desconocido"}</td>
-          <td>${uid}</td>
-          <td>${registro.fecha || "-"}</td>
-          <td>${registro.hora || "-"}</td>
-        `;
-        tabla.appendChild(fila);
-      });
-    });
-  } else {
+  tabla.innerHTML = ""; // Limpia filas anteriores
+
+  if (!datos) {
     tabla.innerHTML = "<tr><td colspan='4'>No hay registros aún</td></tr>";
+    return;
   }
+
+  Object.entries(datos).forEach(([key, registro]) => {
+    // Filtrar registros sin nombre o nombre "Desconocido" si quieres
+    if (!registro.nombre || registro.nombre === "Desconocido") return;
+
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${registro.nombre}</td>
+      <td>${registro.uid || key}</td>
+      <td>${registro.FECHA || "-"}</td>
+      <td>${registro.hora || "-"}</td>
+    `;
+    tabla.appendChild(fila);
+  });
 });
 
-// Actualizar permiso de usuario
-window.actualizarPermiso = function () {
+// Actualizar permiso de usuario (habilitar o bloquear)
+document.getElementById("btnActualizar").onclick = () => {
   const uid = document.getElementById("uidInput").value.trim();
   const permitido = document.getElementById("permisoInput").value === "true";
 
@@ -60,7 +63,7 @@ window.actualizarPermiso = function () {
 };
 
 // Abrir puerta remotamente
-window.abrirPuerta = function () {
+document.getElementById("btnAbrir").onclick = () => {
   set(ref(db, "control_remoto/abrir_puerta"), true)
     .then(() => alert("Puerta activada remotamente"))
     .catch((error) => alert("Error al abrir puerta: " + error));
