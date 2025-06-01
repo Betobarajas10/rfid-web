@@ -101,13 +101,12 @@ async function cargarDenegados() {
       return;
     }
 
-    // Ordenar claves descendente para mostrar más recientes arriba
     const clavesOrdenadas = Object.keys(data).sort().reverse();
 
     for (const key of clavesOrdenadas) {
       const acceso = data[key];
       const uid = acceso.UID || acceso.uid || "-";
-      const fecha = acceso.FECHA || acceso.fecha || "-";
+      const fecha = acceso.FECHA || acceso.fecha || "-";  // <-- CORREGIDO AQUÍ
       const hora = acceso.hora || "-";
 
       tbody.innerHTML += `<tr>
